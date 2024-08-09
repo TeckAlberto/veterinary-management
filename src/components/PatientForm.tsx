@@ -1,14 +1,40 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form'
-import Error from './Error';
+import { toast } from 'react-toastify';
 import { DraftPatient } from '../types';
+import Error from './Error';
+import { usePatientStore } from '../store';
 
 export default function PatientForm() {
   
-    const { register, handleSubmit, formState: {errors} } = useForm<DraftPatient>();
+    const { addPatient, activeId, patients, updatePatient } = usePatientStore();
+    const { register, handleSubmit, setValue, formState: {errors}, reset } = useForm<DraftPatient>();
+
+    useEffect(() => {
+        
+      if (activeId) {
+        const { name, caretaker, email, date, symptoms} = patients.filter( patient => patient.id === activeId)[0];
+        setValue('name', name);
+        setValue('caretaker', caretaker);
+        setValue('date', date);
+        setValue('email', email);
+        setValue('symptoms', symptoms);
+      }
+
+    }, [activeId]);
 
     const registerPatient = (data: DraftPatient) => {
-        console.log(data);
-    }
+        
+      if(activeId) {
+        updatePatient(data);
+        toast.success("Patient have been updated correctly");
+      } else {
+        addPatient(data);
+        toast.success('Patient have been registered correctly');
+      }
+
+      reset();
+    } 
 
     return (
       <div className="mx-5 md:w-1/2 lg:w-2/5">
@@ -16,7 +42,7 @@ export default function PatientForm() {
 
         <p className="mt-5 mb-10 text-lg text-center">
           Add patients and {""}
-          <span className="font-bold text-indigo-600">Management</span>
+          <span className="font-bold text-indigo-600">Manage them</span>
         </p>
 
         <form
